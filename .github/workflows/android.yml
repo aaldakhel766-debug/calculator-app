@@ -3,40 +3,40 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Install Buildozer and Dependencies
+    - name: Install System Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libreoffice-dev libjack-jackd2-dev portaudio19-dev
-        pip3 install --user --upgrade buildozer Cython virtualenv
+        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libreoffice-dev libjack-jackd2-dev portaudio19-dev
+        pip3 install --user --upgrade buildozer cython virtualenv
 
-    - name: Initialize Buildozer Configuration
+    - name: Configure and Build APK
       run: |
         export PATH=$PATH:~/.local/bin
-        # إنشاء ملف الإعدادات الأساسي للتطبيق وتوجيهه لملف HTML
         buildozer init
         sed -i 's/# title = My Application/title = Calculator App/' buildozer.spec
         sed -i 's/# package.name = myapp/package.name = calcup/' buildozer.spec
         sed -i 's/# source.include_exts = py,png,jpg,kv,atlas/source.include_exts = html,css,js/' buildozer.spec
         sed -i 's/# requirements = python3,kivy/requirements = /' buildozer.spec
         sed -i 's/# orientation = landscape/orientation = portrait/' buildozer.spec
-
-    - name: Build with Buildozer
-      run: |
-        export PATH=$PATH:~/.local/bin
-        # هذا الأمر يقوم بتحميل الـ SDK وبناء الـ APK تلقائياً
         yes | buildozer -v android debug
 
-    - name: Upload APK Artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: calculator-apk
