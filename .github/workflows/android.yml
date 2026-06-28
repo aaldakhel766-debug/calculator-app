@@ -19,6 +19,17 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Cache Buildozer packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ~/.buildozer
+          .buildozer
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+
     - name: Install System Dependencies
       run: |
         sudo apt-get update
@@ -28,12 +39,14 @@ jobs:
     - name: Configure and Build APK
       run: |
         export PATH=$PATH:~/.local/bin
-        buildozer init
-        sed -i 's/# title = My Application/title = Calculator App/' buildozer.spec
-        sed -i 's/# package.name = myapp/package.name = calcup/' buildozer.spec
-        sed -i 's/# source.include_exts = py,png,jpg,kv,atlas/source.include_exts = html,css,js/' buildozer.spec
-        sed -i 's/# requirements = python3,kivy/requirements = /' buildozer.spec
-        sed -i 's/# orientation = landscape/orientation = portrait/' buildozer.spec
+        if [ ! -f buildozer.spec ]; then
+          buildozer init
+          sed -i 's/# title = My Application/title = Calculator App/' buildozer.spec
+          sed -i 's/# package.name = myapp/package.name = calcup/' buildozer.spec
+          sed -i 's/# source.include_exts = py,png,jpg,kv,atlas/source.include_exts = html,css,js/' buildozer.spec
+          sed -i 's/# requirements = python3,kivy/requirements = /' buildozer.spec
+          sed -i 's/# orientation = landscape/orientation = portrait/' buildozer.spec
+        fi
         yes | buildozer -v android debug
 
     - name: Upload APK
