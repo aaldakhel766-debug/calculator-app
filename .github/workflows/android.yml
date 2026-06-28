@@ -24,7 +24,7 @@ jobs:
 
     - name: Prepare Web Directory
       run: |
-        mkdir www
+        mkdir -p www
         cp index.html www/ 2>/dev/null || true
         cp *.css www/ 2>/dev/null || true
         cp *.js www/ 2>/dev/null || true
@@ -36,6 +36,19 @@ jobs:
         npx cap init "Calculator App" "com.aaldakhel.calcup" --web-dir=www
         npm install @capacitor/android
         npx cap add android
+
+    - name: Fix Android Build Configuration
+      run: |
+        # تحديث إصدار Gradle المحرك الأساسي ليتوافق مع جافا 21
+        cd android
+        ./gradlew wrapper --gradle-version 8.5
+        
+        # إجبار المشروع على استخدام إصدار كوتلن متوافق وحديث لحل مشكلة التجميع
+        sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.20"/' build.gradle
+        
+        # إضافة إعداد لمنع تعارض المكتبات القديمة
+        echo "android.defaults.buildfeatures.buildconfig=true" >> gradle.properties
+        echo "android.useAndroidX=true" >> gradle.properties
 
     - name: Build Android Project
       run: |
