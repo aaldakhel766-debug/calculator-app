@@ -22,11 +22,18 @@ jobs:
     - name: Install Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Prepare Web Directory
+      run: |
+        mkdir www
+        cp index.html www/ 2>/dev/null || true
+        cp *.css www/ 2>/dev/null || true
+        cp *.js www/ 2>/dev/null || true
+
     - name: Initialize Web to App Conversion
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli
-        npx cap init "Calculator App" "com.aaldakhel.calcup" --web-dir=.
+        npx cap init "Calculator App" "com.aaldakhel.calcup" --web-dir=www
         npm install @capacitor/android
         npx cap add android
 
